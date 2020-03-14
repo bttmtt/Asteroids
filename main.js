@@ -5,7 +5,7 @@ const FPS = 60;
 const FRICTION = 0.7;
 const ROIDS_NUM = 5; // starting number of asteroids
 const ROIDS_SIZE = 100; // starting size in px
-const ROIDS_SPD = 50; // max starting speed 
+const ROIDS_SPD = 555; // max starting speed 
 const ROIDS_VERT = 10; // average number of vertices 
 const ROIDS_JAG = 0.4; // jaggedness (0 = none, 1 = lots)
 const SHIP_SIZE = 20; // height in px
@@ -214,7 +214,7 @@ function update() {
 function handleEdgeOfScreen(obj) {
     if (obj.x < 0 - obj.r) {
         obj.x = canv.width + obj.r;
-    } else if (ship.x > canv.width + obj.r) {
+    } else if (obj.x > canv.width + obj.r) {
         obj.x = 0 - obj.r;
     }
 
