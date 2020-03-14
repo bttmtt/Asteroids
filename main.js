@@ -3,25 +3,33 @@ var ctx = canv.getContext("2d");
 
 const FPS = 60;
 const FRICTION = 0.7;
-const ROIDS_NUM = 5; // starting number of asteroids
+const ROIDS_NUM = 10; // starting number of asteroids
 const ROIDS_SIZE = 100; // starting size in px
-const ROIDS_SPD = 555; // max starting speed 
+const ROIDS_SPD = 55; // max starting speed 
 const ROIDS_VERT = 10; // average number of vertices 
-const ROIDS_JAG = 0.4; // jaggedness (0 = none, 1 = lots)
+const ROIDS_JAG = 0.35; // jaggedness (0 = none, 1 = lots)
 const SHIP_SIZE = 20; // height in px
 const SHIP_THRUST = 3; // accelleration
+const SHIP_EXPLOSION_DURATION = 2; // exploding animation in sec
+const EXPLOSION_RADIUS = SHIP_SIZE * 1.5; 
 const TURN_SPEED = 2 * Math.PI; // rad per sec
+const SHOW_COLLISION_CIRCLES = false;
 
-var ship = {
-    x: canv.width / 2,
-    y: canv.height / 2,
-    r: SHIP_SIZE / 2, // radius
-    a: 90 / 180 * Math.PI, // direction of movement
-    rot: 0, //rotation
-    thrusting: false,
-    thrust: {
-        x: 0,
-        y: 0
+var ship = newShip();
+
+function newShip() {
+    return {
+        x: canv.width / 2,
+        y: canv.height / 2,
+        r: SHIP_SIZE / 2, // radius
+        a: 90 / 180 * Math.PI, // direction of movement
+        rot: 0, //rotation
+        thrusting: false,
+        explodeTime: 0,
+        v: {
+            x: 0,
+            y: 0
+        }
     }
 }
 
@@ -101,85 +109,151 @@ function keyUp(evt) {
     }
 }
 
+function handleEdgeOfScreen(obj) {
+    if (obj.x < 0 - obj.r) {
+        obj.x = canv.width + obj.r;
+    } else if (obj.x > canv.width + obj.r) {
+        obj.x = 0 - obj.r;
+    }
 
+    if (obj.y < 0 - obj.r) {
+        obj.y = canv.height + obj.r;
+    } else if (obj.y > canv.height + obj.r) {
+        obj.y = 0 - obj.r;
+    }
+}
+
+// variables for drawing the explosions
+var x1, y1, r1, a1, vert1, offs1;
 
 //!!!!
 function update() {
+    var exploding = ship.explodeTime > 0;
 
     //draw space
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canv.width, canv.height);
 
-    // draw ship
-    ctx.strokeStyle = "#FFFFFF";
-    ctx.lineWidth = SHIP_SIZE / 20;
-    ctx.beginPath();
-    ctx.moveTo(
-        ship.x + ship.r * Math.cos(ship.a) * 1.5,
-        ship.y - ship.r * Math.sin(ship.a) * 1.5
-    );
-    ctx.lineTo(
-        ship.x - ship.r * (Math.cos(ship.a) + Math.sin(ship.a)),
-        ship.y + ship.r * (Math.sin(ship.a) - Math.cos(ship.a))
-    );
-    ctx.lineTo(
-        ship.x,
-        ship.y
-    );
-    ctx.lineTo(
-        ship.x - ship.r * (Math.cos(ship.a) - Math.sin(ship.a)),
-        ship.y + ship.r * (Math.sin(ship.a) + Math.cos(ship.a))
-    );
-    ctx.closePath();
-    ctx.stroke();
+    //check collisions
+    for(var i = 0; i < roids.length; i++) {
+        if(distBetweenPoints(ship.x, ship.y, roids[i].x, roids[i].y) < ship.r + roids[i].r && ship.explodeTime == 0) {
+            ship.explodeTime = SHIP_EXPLOSION_DURATION * FPS;
+            r1 = EXPLOSION_RADIUS / 4;
+        }
+    }
+    if (!exploding) { 
 
-    // rotate ship
-    ship.a += ship.rot;
-
-    //move ship
-    if (ship.thrusting) {
-        ship.thrust.x += SHIP_THRUST * Math.cos(ship.a) / FPS;
-        ship.thrust.y -= SHIP_THRUST * Math.sin(ship.a) / FPS;
-
-        //draw thruster
-        ctx.strokeStyle = "#FFFF00";
+        //draw ship
+        ctx.strokeStyle = "#FFFFFF";
         ctx.lineWidth = SHIP_SIZE / 20;
-        ctx.fillStyle = "#FFFF00";
         ctx.beginPath();
         ctx.moveTo(
-            ship.x - 0.4 * ship.r * (Math.cos(ship.a) + Math.sin(ship.a)),
-            ship.y + 0.4 * ship.r * (Math.sin(ship.a) - Math.cos(ship.a))
+            ship.x + ship.r * Math.cos(ship.a) * 1.5,
+            ship.y - ship.r * Math.sin(ship.a) * 1.5
         );
         ctx.lineTo(
-            ship.x - 1.2 * ship.r * Math.cos(ship.a),
-            ship.y + 1.2 * ship.r * Math.sin(ship.a)
-        );
-        ctx.lineTo(
-            ship.x - 0.4 * ship.r * (Math.cos(ship.a) - Math.sin(ship.a)),
-            ship.y + 0.4 * ship.r * (Math.sin(ship.a) + Math.cos(ship.a))
+            ship.x - ship.r * (Math.cos(ship.a) + Math.sin(ship.a)),
+            ship.y + ship.r * (Math.sin(ship.a) - Math.cos(ship.a))
         );
         ctx.lineTo(
             ship.x,
             ship.y
         );
+        ctx.lineTo(
+            ship.x - ship.r * (Math.cos(ship.a) - Math.sin(ship.a)),
+            ship.y + ship.r * (Math.sin(ship.a) + Math.cos(ship.a))
+        );
         ctx.closePath();
         ctx.stroke();
-        ctx.fill();
 
-    } else {
-        ship.thrust.x -= FRICTION * ship.thrust.x / FPS;
-        ship.thrust.y -= FRICTION * ship.thrust.y / FPS;
+        //ship collision circle 
+        if (SHOW_COLLISION_CIRCLES) {
+            ctx.strokeStyle = "#00FF00";
+            ctx.beginPath();
+            ctx.arc(ship.x, ship.y, ship.r * 1.1, 0, Math.PI * 2, false);
+            ctx.stroke();
+        }
+
+        // rotate ship
+        ship.a += ship.rot;
+
+        //thruster and friction
+        if (ship.thrusting) {
+            ship.v.x += SHIP_THRUST * Math.cos(ship.a) / FPS;
+            ship.v.y -= SHIP_THRUST * Math.sin(ship.a) / FPS;
+
+            ctx.strokeStyle = "#FFFF00";
+            ctx.lineWidth = SHIP_SIZE / 20;
+            ctx.fillStyle = "#FFFF00";
+            ctx.beginPath();
+            ctx.moveTo(
+                ship.x - 0.4 * ship.r * (Math.cos(ship.a) + Math.sin(ship.a)),
+                ship.y + 0.4 * ship.r * (Math.sin(ship.a) - Math.cos(ship.a))
+            );
+            ctx.lineTo(
+                ship.x - 1.2 * ship.r * Math.cos(ship.a),
+                ship.y + 1.2 * ship.r * Math.sin(ship.a)
+            );
+            ctx.lineTo(
+                ship.x - 0.4 * ship.r * (Math.cos(ship.a) - Math.sin(ship.a)),
+                ship.y + 0.4 * ship.r * (Math.sin(ship.a) + Math.cos(ship.a))
+            );
+            ctx.lineTo(
+                ship.x,
+                ship.y
+            );
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fill();
+
+        } else {
+            ship.v.x -= FRICTION * ship.v.x / FPS;
+            ship.v.y -= FRICTION * ship.v.y / FPS;
+        }
+
+        //move ship
+        ship.x += ship.v.x;
+        ship.y += ship.v.y;
+        handleEdgeOfScreen(ship);
+
+    } else { // if the ship is exploding
+        
+        //draw exploding amimation
+        ctx.strokeStyle = "#FF0000";
+        boom = newAsteroid(ship.x, ship.y);
+        x1 = boom.x;
+        y1 = boom.y;
+        a1 = boom.a;
+        vert1 = boom.vert;
+        offs1 = boom.offs;
+
+        r1 += 3/4 * EXPLOSION_RADIUS / (SHIP_EXPLOSION_DURATION * FPS);
+
+        ctx.beginPath();
+        ctx.moveTo(
+            x1 + r1 * offs1[0] * Math.cos(a1),
+            y1 + r1 * offs1[0] * Math.sin(a1)
+        );
+        for (var j = 1; j < vert1; j++) {
+            ctx.lineTo(
+                x1 + r1 * offs1[j] * Math.cos(a1 + j * Math.PI * 2 / vert1),
+                y1 + r1 * offs1[j] * Math.sin(a1 + j * Math.PI * 2 / vert1)
+            );
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        //timer
+        ship.explodeTime--;
+        if(ship.explodeTime == 0) ship = newShip();
     }
-    ship.x += ship.thrust.x;
-    ship.y += ship.thrust.y;
-
-    handleEdgeOfScreen(ship);
 
     // asteroids
-    ctx.strokeStyle = "#777777";
-    ctx.lineWidth = SHIP_SIZE / 20;
     var x, y, r, a, vert, offs;
     for (var i = 0; i < roids.length; i++) {
+        ctx.strokeStyle = "#777777";
+        ctx.lineWidth = SHIP_SIZE / 20;
+
         x = roids[i].x;
         y = roids[i].y;
         r = roids[i].r;
@@ -202,25 +276,17 @@ function update() {
         ctx.closePath();
         ctx.stroke();
 
-        // move asteroids
+        //asteroids collision circle 
+        if (SHOW_COLLISION_CIRCLES) {
+            ctx.strokeStyle = "#00FF00";
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2, false);
+            ctx.stroke();
+        }
 
+        // move asteroids
         roids[i].x += roids[i].vx;
         roids[i].y += roids[i].vy;
-
         handleEdgeOfScreen(roids[i]);
-    }
-}
-
-function handleEdgeOfScreen(obj) {
-    if (obj.x < 0 - obj.r) {
-        obj.x = canv.width + obj.r;
-    } else if (obj.x > canv.width + obj.r) {
-        obj.x = 0 - obj.r;
-    }
-
-    if (obj.y < 0 - obj.r) {
-        obj.y = canv.height + obj.r;
-    } else if (obj.y > canv.height + obj.r) {
-        obj.y = 0 - obj.r;
     }
 }
