@@ -16,6 +16,9 @@ const SHIP_BLINK_DUR = 0.2; // duration of one blink in sec
 const EXPLOSION_RADIUS = SHIP_SIZE * 1.5;
 const TURN_SPEED = 2 * Math.PI; // rad per sec
 const SHOW_COLLISION_CIRCLES = false;
+const PROJ_MAX = 10; // maximum number of projectiles on screen at once
+const PROJ_SPEED = 500; // speed of projectiles 
+const PROJ_MAX_DIST = 0.6; // maximum distance a proj can travel as fraction of screen width
 
 var ship = newShip();
 
@@ -27,6 +30,8 @@ function newShip() {
         a: 90 / 180 * Math.PI, // direction of movement
         rot: 0, //rotation
         thrusting: false,
+        canShoot: true,
+        proj: [],
         blinkFrames: Math.ceil(SHIP_BLINK_DUR * FPS),
         blinkNum: Math.ceil(SHIP_INV_DUR / SHIP_BLINK_DUR),
         explodeTime: 0,
@@ -87,6 +92,9 @@ document.addEventListener("keyup", keyUp);
 
 function keyDown(evt) {
     switch (evt.keyCode) {
+        case 32: //spacebar (shoot)
+            shoot();
+            break;
         case 37: //left arrow (rotate ship left)
             ship.rot = TURN_SPEED / FPS;
             break;
@@ -101,6 +109,9 @@ function keyDown(evt) {
 
 function keyUp(evt) {
     switch (evt.keyCode) {
+        case 32: //spacebar (allow shooting again)
+            ship.canShoot = true;
+            break;
         case 37: //left arrow (stop ship rotating left)
             ship.rot = 0;
             break;
@@ -127,6 +138,20 @@ function handleEdgeOfScreen(obj) {
     }
 }
 
+function shoot() {
+    // create projectiles object
+    if(ship.canShoot && ship.proj.length < PROJ_MAX) {
+        ship.proj.push({ 
+            x: ship.x + ship.r * Math.cos(ship.a) * 1.5,
+            y: ship.y - ship.r * Math.sin(ship.a) * 1.5,
+            vx: PROJ_SPEED * Math.cos(ship.a) / FPS,
+            vy: PROJ_SPEED * Math.sin(ship.a) / FPS,
+            r: SHIP_SIZE / 15,
+            dist: 0
+        })
+    }
+}
+
 // variables for drawing the explosions
 var x1, y1, r1, a1, vert1, offs1;
 
@@ -139,7 +164,7 @@ function update() {
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canv.width, canv.height);
 
-    if (ship.blinkNum == 0) {
+    if (ship.blinkNum == 0) { // if the ship is not invulnerable
         //check collisions
         for (var i = 0; i < roids.length; i++) {
             if (distBetweenPoints(ship.x, ship.y, roids[i].x, roids[i].y) < ship.r + roids[i].r && ship.explodeTime == 0) {
@@ -148,27 +173,28 @@ function update() {
             }
         }
     }
+
     if (!exploding) {
 
         if (ship.blinkNum == 0 || blinkOn) {
 
             // draw ship
-            ctx.strokeStyle = "#FFFFFF";
+            ctx.strokeStyle = "#ffffff";
             ctx.lineWidth = SHIP_SIZE / 20;
             ctx.beginPath();
-            ctx.moveTo(
+            ctx.moveTo(  // nose
                 ship.x + ship.r * Math.cos(ship.a) * 1.5,
                 ship.y - ship.r * Math.sin(ship.a) * 1.5
             );
-            ctx.lineTo(
+            ctx.lineTo( // rear left
                 ship.x - ship.r * (Math.cos(ship.a) + Math.sin(ship.a)),
                 ship.y + ship.r * (Math.sin(ship.a) - Math.cos(ship.a))
             );
-            ctx.lineTo(
+            ctx.lineTo( // center
                 ship.x,
                 ship.y
             );
-            ctx.lineTo(
+            ctx.lineTo( // rear right
                 ship.x - ship.r * (Math.cos(ship.a) - Math.sin(ship.a)),
                 ship.y + ship.r * (Math.sin(ship.a) + Math.cos(ship.a))
             );
@@ -178,9 +204,9 @@ function update() {
             // draw thruster
             if (ship.thrusting) {
 
-                ctx.strokeStyle = "#FFFF00";
+                ctx.strokeStyle = "#ffff00";
                 ctx.lineWidth = SHIP_SIZE / 20;
-                ctx.fillStyle = "#FFFF00";
+                ctx.fillStyle = "#ffff00";
                 ctx.beginPath();
                 ctx.moveTo(
                     ship.x - 0.4 * ship.r * (Math.cos(ship.a) + Math.sin(ship.a)),
@@ -224,7 +250,7 @@ function update() {
 
         // ship collision circle 
         if (SHOW_COLLISION_CIRCLES) {
-            ctx.strokeStyle = "#00FF00";
+            ctx.strokeStyle = "#00ff00";
             ctx.beginPath();
             ctx.arc(ship.x, ship.y, ship.r * 1.1, 0, Math.PI * 2, false);
             ctx.stroke();
@@ -241,7 +267,7 @@ function update() {
     } else { // if the ship is exploding
 
         // draw exploding amimation
-        ctx.strokeStyle = "#FF0000";
+        ctx.strokeStyle = "#ff0000";
         boom = newAsteroid(ship.x, ship.y);
         x1 = boom.x;
         y1 = boom.y;
@@ -270,6 +296,29 @@ function update() {
         if (ship.explodeTime == 0) ship = newShip();
     }
 
+    // projectiles
+    for(var i = 0; i < ship.proj.length; i++) {
+        // draw projectiles
+        ctx.fillStyle = "#f59342";
+        ctx.beginPath();
+        ctx.arc(ship.proj[i].x, ship.proj[i].y, ship.proj[i].r, 0, Math.PI * 2, false);
+        ctx.fill();
+
+        // move projectiles
+        ship.proj[i].x += ship.proj[i].vx;
+        ship.proj[i].y -= ship.proj[i].vy;
+
+        // calculate distance travelled
+        ship.proj[i].dist += Math.sqrt(Math.pow(ship.proj[i].vx, 2) + Math.pow(ship.proj[i].vy, 2));
+
+        handleEdgeOfScreen(ship.proj[i]);
+
+        // check distance travelled
+        if(ship.proj[i].dist > PROJ_MAX_DIST * canv.width) {
+            ship.proj.pop();
+        } 
+    }
+    
     // asteroids
     var x, y, r, a, vert, offs;
     for (var i = 0; i < roids.length; i++) {
@@ -300,7 +349,7 @@ function update() {
 
         //asteroids collision circle 
         if (SHOW_COLLISION_CIRCLES) {
-            ctx.strokeStyle = "#00FF00";
+            ctx.strokeStyle = "#00ff00";
             ctx.beginPath();
             ctx.arc(x, y, r, 0, Math.PI * 2, false);
             ctx.stroke();
