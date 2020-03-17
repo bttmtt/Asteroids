@@ -3,11 +3,13 @@ var ctx = canv.getContext("2d");
 
 const FPS = 60;
 const FRICTION = 0.7;
-const ROIDS_NUM = 10; // starting number of asteroids
+const ROIDS_NUM = 5; // starting number of asteroids
 const ROIDS_SIZE = 100; // starting size in px
 const ROIDS_SPD = 55; // max starting speed 
 const ROIDS_VERT = 10; // average number of vertices 
 const ROIDS_JAG = 0.35; // jaggedness (0 = none, 1 = lots)
+const ROIDS_PIECES = 20; // number of pieces when the roids breaks
+const ROIDS_BREAK_TIME = 2; // sec
 const SHIP_SIZE = 20; // height in px
 const SHIP_THRUST = 3; // accelleration
 const SHIP_EXPLOSION_DUR = 2; // exploding animation in sec
@@ -71,26 +73,40 @@ function newAsteroid(x, y, r) {
         r: r,
         a: Math.random() * Math.PI * 2,
         vert: Math.floor(Math.random() * (ROIDS_VERT + 1) + ROIDS_VERT / 2),
-        offs: []
+        offs: [],
     }
 
     //create vertex offsets array
     for (var i = 0; i < roid.vert; i++) {
         roid.offs.push(Math.random() * ROIDS_JAG * 2 + 1 - ROIDS_JAG)
     }
-
     return roid;
+}
+
+var breakingRoids = [];
+
+function newBreakingRoid(x, y) {
+    breakingRoids.push({
+        x: x,
+        y: y,
+        breakTime: ROIDS_BREAK_TIME * FPS
+    })
 }
 
 function destroyAsteroid(index) {
     var x = roids[index].x;
     var y = roids[index].y;
     var r = roids[index].r;
-    
-    // split the asteroid in two if necessary
+
+
+
+    // if asteroid size is big or medium
     if (r != Math.ceil(Math.ceil(Math.ceil(ROIDS_SIZE / 2) / 2) / 2)) {
-        roids.push(newAsteroid(x, y, Math.ceil(r/2)));
-        roids.push(newAsteroid(x, y, Math.ceil(r/2)));
+        roids.push(newAsteroid(x, y, Math.ceil(r / 2)));
+        roids.push(newAsteroid(x, y, Math.ceil(r / 2)));
+    } else { // if asteroid size is small
+        // add breaking animation
+        newBreakingRoid(x, y);
     }
 
     // destroy the original asteroid
@@ -155,8 +171,8 @@ function handleEdgeOfScreen(obj) {
 
 function shoot() {
     // create projectiles object
-    if(ship.canShoot && ship.proj.length < PROJ_MAX) {
-        ship.proj.push({ 
+    if (ship.canShoot && ship.proj.length < PROJ_MAX) {
+        ship.proj.push({
             x: ship.x + ship.r * Math.cos(ship.a) * 1.5,
             y: ship.y - ship.r * Math.sin(ship.a) * 1.5,
             vx: PROJ_SPEED * Math.cos(ship.a) / FPS,
@@ -182,8 +198,8 @@ function update() {
     if (ship.blinkNum == 0) { // if the ship is not invulnerable
         //check collisions
         for (var i = 0; i < roids.length; i++) {
-            if (distBetweenPoints(ship.x, ship.y, roids[i].x, roids[i].y) < 
-            ship.r + roids[i].r && ship.explodeTime == 0) {
+            if (distBetweenPoints(ship.x, ship.y, roids[i].x, roids[i].y) <
+                ship.r + roids[i].r && ship.explodeTime == 0) {
                 ship.explodeTime = SHIP_EXPLOSION_DUR * FPS;
                 r1 = EXPLOSION_RADIUS / 3;
                 destroyAsteroid(i);
@@ -315,9 +331,9 @@ function update() {
     }
 
     // projectiles
-    for(var i = 0; i < ship.proj.length; i++) {
+    for (var i = 0; i < ship.proj.length; i++) {
         // check distance travelled
-        if(ship.proj[i].dist > PROJ_MAX_DIST * canv.width) {
+        if (ship.proj[i].dist > PROJ_MAX_DIST * canv.width) {
             ship.proj.splice(i, 1);
             continue;
         }
@@ -338,9 +354,9 @@ function update() {
         handleEdgeOfScreen(ship.proj[i]);
 
         // detect hits
-        for(var j = 0; j < roids.length; j++) {
-            if(distBetweenPoints(ship.proj[i].x, ship.proj[i].y, roids[j].x, roids[j].y) < 
-            ship.proj[i].r + roids[j].r) {
+        for (var j = 0; j < roids.length; j++) {
+            if (distBetweenPoints(ship.proj[i].x, ship.proj[i].y, roids[j].x, roids[j].y) <
+                ship.proj[i].r + roids[j].r) {
                 ship.proj.splice(i, 1);
                 i--;
                 destroyAsteroid(j);
@@ -348,7 +364,6 @@ function update() {
             }
         }
     }
-    
 
     // asteroids
     var x, y, r, a, vert, offs;
@@ -390,5 +405,24 @@ function update() {
         roids[i].x += roids[i].vx;
         roids[i].y += roids[i].vy;
         handleEdgeOfScreen(roids[i]);
+    }
+
+    var ang = 0;
+    // draw exploding asteroid animation
+    for (var i = 0; i < breakingRoids.length; i++) {
+        for (var j = 0; j < ROIDS_PIECES; j++) {
+            ctx.strokeStyle = "#333333";
+            if (j % 2 == 0) {
+                ctx.beginPath();
+                ctx.arc(breakingRoids[i].x, breakingRoids[i].y, ROIDS_BREAK_TIME * FPS - breakingRoids[i].breakTime + ROIDS_SIZE / 10, ang, ang + Math.PI * 2 / ROIDS_PIECES, false);
+                ctx.stroke();
+            }
+            ang += Math.PI * 2 / ROIDS_PIECES;
+        }
+        breakingRoids[i].breakTime--;
+        if (breakingRoids[i].breakTime <= 0) {
+            breakingRoids.splice(i, 1);
+            i--;
+        }
     }
 }
