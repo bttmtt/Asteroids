@@ -8,14 +8,15 @@ const ROIDS_SIZE = 100; // starting size in px
 const ROIDS_SPD = 55; // max starting speed 
 const ROIDS_VERT = 10; // average number of vertices 
 const ROIDS_JAG = 0.35; // jaggedness (0 = none, 1 = lots)
-const ROIDS_PIECES = 20; // number of pieces when the roids breaks
-const ROIDS_BREAK_TIME = 2; // sec
+const ROIDS_EXPL_PIECES = 30; // number of pieces when the roids breaks
+const ROIDS_EXPL_TIME = 0.65; // sec
+const ROIDS_EXPL_RADIUS = ROIDS_SIZE / 4 * 0.5;
 const SHIP_SIZE = 20; // height in px
 const SHIP_THRUST = 3; // accelleration
-const SHIP_EXPLOSION_DUR = 2; // exploding animation in sec
+const SHIP_EXPLOSION_DUR = 1.7; // exploding animation in sec
 const SHIP_INV_DUR = 3; // ship invulnerability when respawning in sec
 const SHIP_BLINK_DUR = 0.2; // duration of one blink in sec
-const EXPLOSION_RADIUS = SHIP_SIZE * 1.2;
+const SHIP_EXPLOSION_RADIUS = SHIP_SIZE * 1.2;
 const TURN_SPEED = 2 * Math.PI; // rad per sec
 const SHOW_COLLISION_CIRCLES = false;
 const PROJ_MAX = 10; // maximum number of projectiles on screen at once
@@ -83,13 +84,14 @@ function newAsteroid(x, y, r) {
     return roid;
 }
 
-var breakingRoids = [];
+var explRoids = [];
 
-function newBreakingRoid(x, y) {
-    breakingRoids.push({
+function newExplRoid(x, y) {
+    explRoids.push({
         x: x,
         y: y,
-        breakTime: ROIDS_BREAK_TIME * FPS
+        r: ROIDS_EXPL_RADIUS / 3,
+        explTime: Math.ceil(ROIDS_EXPL_TIME * FPS)
     })
 }
 
@@ -106,7 +108,7 @@ function destroyAsteroid(index) {
         roids.push(newAsteroid(x, y, Math.ceil(r / 2)));
     } else { // if asteroid size is small
         // add breaking animation
-        newBreakingRoid(x, y);
+        newExplRoid(x, y);
     }
 
     // destroy the original asteroid
@@ -201,7 +203,7 @@ function update() {
             if (distBetweenPoints(ship.x, ship.y, roids[i].x, roids[i].y) <
                 ship.r + roids[i].r && ship.explodeTime == 0) {
                 ship.explodeTime = SHIP_EXPLOSION_DUR * FPS;
-                r1 = EXPLOSION_RADIUS / 3;
+                r1 = SHIP_EXPLOSION_RADIUS / 3;
                 destroyAsteroid(i);
                 break;
             }
@@ -309,7 +311,7 @@ function update() {
         vert1 = boom.vert;
         offs1 = boom.offs;
 
-        r1 += 2 / 3 * EXPLOSION_RADIUS / (SHIP_EXPLOSION_DUR * FPS);
+        r1 += 2 / 3 * SHIP_EXPLOSION_RADIUS / (SHIP_EXPLOSION_DUR * FPS);
 
         ctx.beginPath();
         ctx.moveTo(
@@ -407,22 +409,50 @@ function update() {
         handleEdgeOfScreen(roids[i]);
     }
 
+    // draw exploding asteroid animation A
     var ang = 0;
-    // draw exploding asteroid animation
-    for (var i = 0; i < breakingRoids.length; i++) {
-        for (var j = 0; j < ROIDS_PIECES; j++) {
-            ctx.strokeStyle = "#333333";
-            if (j % 2 == 0) {
+    for (var i = 0; i < explRoids.length; i++) {
+        explRoids[i].r += 2 / 3 * ROIDS_EXPL_RADIUS / (ROIDS_EXPL_TIME * FPS);
+        for (var j = 0; j < ROIDS_EXPL_PIECES; j++) {
+            ctx.strokeStyle = "#777777";
+            if (j % 2 == 0 ) {
                 ctx.beginPath();
-                ctx.arc(breakingRoids[i].x, breakingRoids[i].y, ROIDS_BREAK_TIME * FPS - breakingRoids[i].breakTime + ROIDS_SIZE / 10, ang, ang + Math.PI * 2 / ROIDS_PIECES, false);
+                ctx.moveTo(
+                    explRoids[i].x + explRoids[i].r * Math.cos(ang),
+                    explRoids[i].y + explRoids[i].r * Math.sin(ang)
+                );
+                ctx.lineTo(
+                    explRoids[i].x + explRoids[i].r * Math.cos(ang) * 1.1,
+                    explRoids[i].y + explRoids[i].r * Math.sin(ang) * 1.1
+                );  
                 ctx.stroke();
-            }
-            ang += Math.PI * 2 / ROIDS_PIECES;
+            } 
+            ang += Math.PI * 2 / ROIDS_EXPL_PIECES;
         }
-        breakingRoids[i].breakTime--;
-        if (breakingRoids[i].breakTime <= 0) {
-            breakingRoids.splice(i, 1);
+        explRoids[i].explTime--;
+        if (explRoids[i].explTime <= 0) {
+            explRoids.splice(i, 1);
             i--;
         }
     }
+
+    // draw exploding asteroid animation B
+    /*var ang = 0;
+    for (var i = 0; i < explRoids.length; i++) {
+        explRoids[i].r += 2 / 3 * ROIDS_EXPL_RADIUS / (ROIDS_EXPL_TIME * FPS);
+        for (var j = 0; j < ROIDS_EXPL_PIECES; j++) {
+            ctx.strokeStyle = "#777777";
+            if (j % 2 == 0 ) {
+                ctx.beginPath();
+                ctx.arc(explRoids[i].x, explRoids[i].y, explRoids[i].r, ang, ang + Math.PI * 2 / ROIDS_EXPL_PIECES, false);
+                ctx.stroke();
+            } 
+            ang += Math.PI * 2 / ROIDS_EXPL_PIECES;
+        }
+        explRoids[i].explTime--;
+        if (explRoids[i].explTime <= 0) {
+            explRoids.splice(i, 1);
+            i--;
+        }
+    }*/
 }
