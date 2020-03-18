@@ -2,13 +2,14 @@ var canv = document.getElementById("gameCanvas");
 var ctx = canv.getContext("2d");
 
 const FPS = 60;
+const LINES_WIDTH = 1;
 const FRICTION = 0.7;
 const ROIDS_NUM = 5; // starting number of asteroids
 const ROIDS_SIZE = 100; // starting size in px
 const ROIDS_SPD = 55; // max starting speed 
 const ROIDS_VERT = 10; // average number of vertices 
 const ROIDS_JAG = 0.35; // jaggedness (0 = none, 1 = lots)
-const ROIDS_EXPL_PIECES = 30; // number of pieces when the roids breaks
+const ROIDS_EXPL_PIECES = 25; // number of pieces when the roids breaks
 const ROIDS_EXPL_TIME = 0.65; // sec
 const ROIDS_EXPL_RADIUS = ROIDS_SIZE / 4 * 0.5;
 const SHIP_SIZE = 20; // height in px
@@ -22,6 +23,8 @@ const SHOW_COLLISION_CIRCLES = false;
 const PROJ_MAX = 10; // maximum number of projectiles on screen at once
 const PROJ_SPEED = 500; // speed of projectiles 
 const PROJ_MAX_DIST = 0.6; // maximum distance a proj can travel as fraction of screen width
+
+var x1, y1, r1, a1, vert1, offs1; // variables for drawing ship explosions
 
 var ship = newShip();
 
@@ -48,9 +51,6 @@ function newShip() {
 //set up asteroids
 var roids = [];
 createAsteroidBelt();
-
-// game loop
-setInterval(update, 1000 / FPS);
 
 function createAsteroidBelt() {
     roids = [];
@@ -79,7 +79,7 @@ function newAsteroid(x, y, r) {
 
     //create vertex offsets array
     for (var i = 0; i < roid.vert; i++) {
-        roid.offs.push(Math.random() * ROIDS_JAG * 2 + 1 - ROIDS_JAG)
+        roid.offs.push(Math.random() * ROIDS_JAG * 2 + 1 - ROIDS_JAG);
     }
     return roid;
 }
@@ -87,20 +87,25 @@ function newAsteroid(x, y, r) {
 var explRoids = [];
 
 function newExplRoid(x, y) {
-    explRoids.push({
+    var explRoid = {
         x: x,
         y: y,
         r: ROIDS_EXPL_RADIUS / 3,
-        explTime: Math.ceil(ROIDS_EXPL_TIME * FPS)
-    })
+        explTime: Math.ceil(ROIDS_EXPL_TIME * FPS),
+        offs: []
+    }
+
+    //create offsets array
+    for (var i = 0; i < ROIDS_EXPL_PIECES; i++) {
+        explRoid.offs.push(Math.random() * ROIDS_SIZE / 10);
+    }
+    explRoids.push(explRoid);
 }
 
 function destroyAsteroid(index) {
     var x = roids[index].x;
     var y = roids[index].y;
     var r = roids[index].r;
-
-
 
     // if asteroid size is big or medium
     if (r != Math.ceil(Math.ceil(Math.ceil(ROIDS_SIZE / 2) / 2) / 2)) {
@@ -117,6 +122,20 @@ function destroyAsteroid(index) {
 
 function distBetweenPoints(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+}
+
+function shoot() {
+    // create projectiles object
+    if (ship.canShoot && ship.proj.length < PROJ_MAX && ship.explodeTime == 0) {
+        ship.proj.push({
+            x: ship.x + ship.r * Math.cos(ship.a) * 1.5,
+            y: ship.y - ship.r * Math.sin(ship.a) * 1.5,
+            vx: PROJ_SPEED * Math.cos(ship.a) / FPS,
+            vy: PROJ_SPEED * Math.sin(ship.a) / FPS,
+            r: SHIP_SIZE / 15,
+            dist: 0
+        })
+    }
 }
 
 //event handlers
@@ -171,27 +190,15 @@ function handleEdgeOfScreen(obj) {
     }
 }
 
-function shoot() {
-    // create projectiles object
-    if (ship.canShoot && ship.proj.length < PROJ_MAX) {
-        ship.proj.push({
-            x: ship.x + ship.r * Math.cos(ship.a) * 1.5,
-            y: ship.y - ship.r * Math.sin(ship.a) * 1.5,
-            vx: PROJ_SPEED * Math.cos(ship.a) / FPS,
-            vy: PROJ_SPEED * Math.sin(ship.a) / FPS,
-            r: SHIP_SIZE / 15,
-            dist: 0
-        })
-    }
-}
-
-// variables for drawing the explosions
-var x1, y1, r1, a1, vert1, offs1;
+// game loop
+setInterval(update, 1000 / FPS);
 
 //!!!!
 function update() {
     var blinkOn = ship.blinkNum % 2 == 0;
     var exploding = ship.explodeTime > 0;
+    
+    ctx.lineWidth = LINES_WIDTH;
 
     //draw space
     ctx.fillStyle = "#000000";
@@ -216,7 +223,6 @@ function update() {
 
             // draw ship
             ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = SHIP_SIZE / 20;
             ctx.beginPath();
             ctx.moveTo(  // nose
                 ship.x + ship.r * Math.cos(ship.a) * 1.5,
@@ -241,7 +247,6 @@ function update() {
             if (ship.thrusting) {
 
                 ctx.strokeStyle = "#ffff00";
-                ctx.lineWidth = SHIP_SIZE / 20;
                 ctx.fillStyle = "#ffff00";
                 ctx.beginPath();
                 ctx.moveTo(
@@ -371,7 +376,6 @@ function update() {
     var x, y, r, a, vert, offs;
     for (var i = 0; i < roids.length; i++) {
         ctx.strokeStyle = "#777777";
-        ctx.lineWidth = SHIP_SIZE / 20;
 
         x = roids[i].x;
         y = roids[i].y;
@@ -411,22 +415,23 @@ function update() {
 
     // draw exploding asteroid animation A
     var ang = 0;
+    ctx.strokeStyle = "#777777";
+    ctx.lineWidth = 2;
     for (var i = 0; i < explRoids.length; i++) {
         explRoids[i].r += 2 / 3 * ROIDS_EXPL_RADIUS / (ROIDS_EXPL_TIME * FPS);
         for (var j = 0; j < ROIDS_EXPL_PIECES; j++) {
-            ctx.strokeStyle = "#777777";
-            if (j % 2 == 0 ) {
+            if (j % 2 == 0) {
                 ctx.beginPath();
                 ctx.moveTo(
-                    explRoids[i].x + explRoids[i].r * Math.cos(ang),
-                    explRoids[i].y + explRoids[i].r * Math.sin(ang)
+                    explRoids[i].x + (explRoids[i].r + explRoids[i].offs[j]) * Math.cos(ang),
+                    explRoids[i].y + (explRoids[i].r + explRoids[i].offs[j]) * Math.sin(ang)
                 );
                 ctx.lineTo(
-                    explRoids[i].x + explRoids[i].r * Math.cos(ang) * 1.1,
-                    explRoids[i].y + explRoids[i].r * Math.sin(ang) * 1.1
-                );  
+                    explRoids[i].x + (explRoids[i].r + explRoids[i].offs[j]) * Math.cos(ang) * 1.1,
+                    explRoids[i].y + (explRoids[i].r + explRoids[i].offs[j]) * Math.sin(ang) * 1.1
+                );
                 ctx.stroke();
-            } 
+            }
             ang += Math.PI * 2 / ROIDS_EXPL_PIECES;
         }
         explRoids[i].explTime--;
