@@ -2,7 +2,7 @@ const FPS = 60;
 const LINES_WIDTH = 1;
 const GAME_LIVES = 1; // starting number of lives
 const FRICTION = 0.7;
-const ROIDS_NUM = 1; // starting number of asteroids
+const ROIDS_NUM = 3; // starting number of asteroids
 const ROIDS_SIZE = 100; // starting size in px
 const ROIDS_SPD = 55; // max starting speed 
 const ROIDS_VERT = 10; // average number of vertices 
@@ -10,6 +10,10 @@ const ROIDS_JAG = 0.35; // jaggedness (0 = none, 1 = lots)
 const ROIDS_EXPL_PIECES = 25; // number of pieces when the roids breaks
 const ROIDS_EXPL_TIME = 0.65; // sec
 const ROIDS_EXPL_RADIUS = ROIDS_SIZE / 4 * 0.5;
+const ROIDS_PTS_LGE = 20; // point scored when destroing large asteroids
+const ROIDS_PTS_MED = 50; // point scored when destroing medium asteroids
+const ROIDS_PTS_SML = 100; // point scored when destroing small asteroids
+const SAVE_KEY_SCORE = "bestscore"; // save key for local storage of best score
 const SHIP_SIZE = 20; // height in px
 const SHIP_THRUST = 3; // accelleration
 const SHIP_EXPLOSION_DUR = 1.7; // exploding animation in sec
@@ -28,25 +32,32 @@ var canv = document.getElementById("gameCanvas");
 var ctx = canv.getContext("2d");
 
 // set up the game parameters
-var level, lives, ship, roids = [], explRoids = [], text, textAlpha;
+var level, lives, score, bestScore, ship, roids = [], explRoids = [], text, textAlpha;
 newGame();
 
 function newGame() {
     level = 0;
+    score = 0;
     lives = GAME_LIVES;
     ship = newShip();
+
+    // get the best score from local storage
+    cookieStr = getCookie("bestscore");
+    console.log(cookieStr);
+    bestScore = (cookieStr == "") ? 0 : parseInt(cookieStr);
+
     newLevel();
 }
 
 function newLevel() {
-    text = "Level " + (level + 1);
+    text = "LEVEL " + (level + 1);
     textAlpha = 1.0;
     createAsteroidBelt();
 }
 
 function gameOver() {
     ship.dead = true;
-    text = "Game Over";
+    text = "GAME OVER";
     textAlpha = 1.0;
 }
 
@@ -150,13 +161,24 @@ function destroyAsteroid(index) {
     var y = roids[index].y;
     var r = roids[index].r;
 
-    // if asteroid size is big or medium
-    if (r != Math.ceil(Math.ceil(Math.ceil(ROIDS_SIZE / 2) / 2) / 2)) {
+    if (r == Math.ceil(ROIDS_SIZE / 2)) {// size large
         roids.push(newAsteroid(x, y, Math.ceil(r / 2)));
         roids.push(newAsteroid(x, y, Math.ceil(r / 2)));
-    } else { // if asteroid size is small
-        // add breaking animation
+        score += ROIDS_PTS_LGE;
+    } else if (r == Math.ceil(ROIDS_SIZE / 4)) { // size medium
+        roids.push(newAsteroid(x, y, Math.ceil(r / 2)));
+        roids.push(newAsteroid(x, y, Math.ceil(r / 2)));
+        score += ROIDS_PTS_MED;
+    } else { //size small
         newExplRoid(x, y);
+        score += ROIDS_PTS_SML;
+    }
+
+    // check Best score
+    if (score > bestScore) {
+        bestScore = score;
+        setCookie("bestscore", bestScore, 9999);
+        console.log(document.cookie);
     }
 
     // destroy the original asteroid
@@ -337,32 +359,56 @@ function update() {
 
     } else { // if the ship is exploding
 
-        // draw exploding amimation
-        ctx.strokeStyle = "#ff0000";
-        boom = newAsteroid(ship.x, ship.y);
-        x1 = boom.x;
-        y1 = boom.y;
-        a1 = boom.a;
-        vert1 = boom.vert;
-        offs1 = boom.offs;
-
-        r1 += 2 / 3 * SHIP_EXPLOSION_RADIUS / (SHIP_EXPLOSION_DUR * FPS);
-
-        ctx.beginPath();
-        ctx.moveTo(
-            x1 + r1 * offs1[0] * Math.cos(a1),
-            y1 + r1 * offs1[0] * Math.sin(a1)
-        );
-        for (var j = 1; j < vert1; j++) {
-            ctx.lineTo(
-                x1 + r1 * offs1[j] * Math.cos(a1 + j * Math.PI * 2 / vert1),
-                y1 + r1 * offs1[j] * Math.sin(a1 + j * Math.PI * 2 / vert1)
+        // draw ship exploding amimation A
+        /*        
+            ctx.strokeStyle = "#ff0000";
+            boom = newAsteroid(ship.x, ship.y);
+            x1 = boom.x;
+            y1 = boom.y;
+            a1 = boom.a;
+            vert1 = boom.vert;
+            offs1 = boom.offs;
+    
+            r1 += 2 / 3 * SHIP_EXPLOSION_RADIUS / (SHIP_EXPLOSION_DUR * FPS);
+    
+            ctx.beginPath();
+            ctx.moveTo(
+                x1 + r1 * offs1[0] * Math.cos(a1),
+                y1 + r1 * offs1[0] * Math.sin(a1)
             );
-        }
+            for (var j = 1; j < vert1; j++) {
+                ctx.lineTo(
+                    x1 + r1 * offs1[j] * Math.cos(a1 + j * Math.PI * 2 / vert1),
+                    y1 + r1 * offs1[j] * Math.sin(a1 + j * Math.PI * 2 / vert1)
+                );
+            }
+            ctx.closePath();
+            ctx.stroke();
+        */
+
+        //draw ship exploding amimation B
+        ctx.strokeStyle = "#ff0000";
+        ctx.beginPath();
+        ctx.moveTo(  // nose
+            ship.x + ship.r * Math.cos(ship.a) * 1.5,
+            ship.y - ship.r * Math.sin(ship.a) * 1.5
+        );
+        ctx.lineTo( // rear left
+            ship.x - ship.r * (Math.cos(ship.a) + Math.sin(ship.a)),
+            ship.y + ship.r * (Math.sin(ship.a) - Math.cos(ship.a))
+        );
+        ctx.lineTo( // center
+            ship.x,
+            ship.y
+        );
+        ctx.lineTo( // rear right
+            ship.x - ship.r * (Math.cos(ship.a) - Math.sin(ship.a)),
+            ship.y + ship.r * (Math.sin(ship.a) + Math.cos(ship.a))
+        );
         ctx.closePath();
         ctx.stroke();
 
-        //timer
+        // timer and lives handler
         ship.explodeTime--;
         if (ship.explodeTime == 0) {
             lives--;
@@ -503,7 +549,7 @@ function update() {
     if (textAlpha >= 0) {
         ctx.textAlign = "center";
         ctx.fillStyle = "rgba(255, 255, 255, " + textAlpha + ")";
-        ctx.font = "small-caps " + TEXT_SIZE + "px dejavu sans mono";
+        ctx.font = "small-caps " + TEXT_SIZE + "px 'Lato', sans-serif";
         ctx.fillText(text, canv.width / 2, canv.height * 0.25);
         textAlpha -= (1.0 / TEXT_FADE_TIME / FPS);
     } else if (ship.dead) {
@@ -514,4 +560,16 @@ function update() {
     for (var i = 0; i < lives; i++) {
         drawShip(SHIP_SIZE + i * SHIP_SIZE * 1.3, SHIP_SIZE * 1.25, 0.5 * Math.PI);
     }
+
+    // draw the score
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = TEXT_SIZE + "px 'Lato', sans-serif";
+    ctx.fillText(score, canv.width - SHIP_SIZE / 2, SHIP_SIZE * 1.75);
+
+    // draw the best score
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = (TEXT_SIZE * 0.5) + "px 'Lato', sans-serif";
+    ctx.fillText("TOP SCORE    " + bestScore, canv.width / 2, SHIP_SIZE * 1.75);
 }
