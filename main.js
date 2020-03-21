@@ -2,7 +2,7 @@ const FPS = 60;
 const LINES_WIDTH = 1;
 const GAME_LIVES = 2; // starting number of lives
 const FRICTION = 0.7;
-const ROIDS_NUM = 3; // starting number of asteroids
+const ROIDS_NUM = 4; // starting number of asteroids
 const ROIDS_SIZE = 100; // starting size in px
 const ROIDS_SPD = 55; // max starting speed 
 const ROIDS_VERT = 10; // average number of vertices 
@@ -15,7 +15,7 @@ const ROIDS_PTS_MED = 50; // point scored when destroing medium asteroids
 const ROIDS_PTS_SML = 100; // point scored when destroing small asteroids
 const SAVE_KEY_SCORE = "bestscore"; // save key for local storage of best score
 const SHIP_SIZE = 20; // height in px
-const SHIP_THRUST = 3; // accelleration
+const SHIP_THRUST = 3.5; // accelleration
 const SHIP_EXPL_DUR = 1.5; // exploding animation in sec
 const SHIP_EXPL_RADIUS = SHIP_SIZE * 1.2;
 const SHIP_EXPL_ANIM = "A2"; // choose animation "A1" or "A2" 
@@ -27,7 +27,8 @@ const PROJ_SPEED = 500; // speed of projectiles
 const PROJ_MAX_DIST = 0.6; // maximum distance a proj can travel as fraction of screen width
 const TEXT_FADE_TIME = 2.5; //text fade time is sec
 const TEXT_SIZE = 35; //text font height in px
-const SOUND_ON = false;
+const SOUND_ON = true;
+const MUSIC_ON = true;
 const SHOW_COLLISION_CIRCLES = false;
 
 // get html elements
@@ -35,13 +36,16 @@ var canv = document.getElementById("gameCanvas");
 var ctx = canv.getContext("2d");
 
 // set up sound effects
-var fxProj = new Sound("sounds/projectile.m4a", 10, 0.1);
+var fxProj = new Sound("sounds/projectile.m4a", 10, 0.05);
 var fxExplShip = new Sound("sounds/explode.m4a");
-var fxHitLrg = new Sound("sounds/bangLarge.wav", 5);
-var fxHitMed = new Sound("sounds/bangMedium.wav", 5);
-var fxHitSml = new Sound("sounds/bangSmall.wav", 5);
+var fxHitLrg = new Sound("sounds/bangLarge.wav", 5, 0.6);
+var fxHitMed = new Sound("sounds/bangMedium.wav", 5, 0.6);
+var fxHitSml = new Sound("sounds/bangSmall.wav", 5, 0.6);
 var fxExtraShip = new Sound("sounds/extraShip.wav");
 var fxThruster = new Sound("sounds/thrrrust.m4a", 1, 0.15);
+
+// set up music
+var music = new Music("sounds/music-low.m4a", "sounds/music-high.m4a");
 
 // set up the game parameters
 var level, lives, score, bestScore, ship, roids = [], explRoids = [], text, textAlpha;
@@ -54,7 +58,7 @@ function newGame() {
     ship = newShip();
 
     // get the best score from local storage
-    cookieStr = getCookie("bestscore");
+    cookieStr = getCookie(SAVE_KEY_SCORE);
     bestScore = (cookieStr == "") ? 0 : parseInt(cookieStr);
 
     newLevel();
@@ -63,6 +67,7 @@ function newGame() {
 function newLevel() {
     text = "LEVEL " + (level + 1);
     textAlpha = 1.0;
+    roidsMax = (ROIDS_NUM + level) * 4;
     createAsteroidBelt();
 }
 
@@ -198,7 +203,7 @@ function destroyAsteroid(index) {
     // check Best score
     if (score > bestScore) {
         bestScore = score;
-        setCookie("bestscore", bestScore, 9999);
+        setCookie(SAVE_KEY_SCORE, bestScore, 9999);
     }
 
     // destroy the original asteroid
@@ -251,6 +256,38 @@ function Sound(src, maxStreams = 1, vol = 1.0) {
     this.stop = function () {
         this.streams[this.streamNum].pause();
         this.streams[this.streamNum].currentTime = 0;
+    }
+}
+
+function Music(srcLow, srcHigh) {
+    this.soundLow = new Sound(srcLow, 1, 0.5);
+    this.soundHigh = new Sound(srcHigh, 1, 0.5);
+    this.low = true;
+    this.tempo = 1; // seconds per beat
+    this.beatTime = 0; // frames left until the next beat
+
+    this.play = function () {
+        if (MUSIC_ON) {
+            if (this.low) {
+                this.soundLow.play();
+            } else {
+                this.soundHigh.play();
+            }
+            this.low = !this.low;
+        }
+    }
+
+    this.tick = function () {
+        if (this.beatTime == 0) {
+            this.play();
+            this.beatTime = Math.ceil(this.tempo * FPS);
+        } else {
+            this.beatTime--;
+        }
+    }
+
+    this.setTempo = function (n) {
+        this.tempo = (n < 20) ? (1.0 - n / 80 * 3) : (0.25);
     }
 }
 
@@ -316,6 +353,10 @@ function update() {
     var exploding = ship.explodeTime > 0;
 
     ctx.lineWidth = LINES_WIDTH;
+
+    // music
+    music.tick();
+    music.setTempo(roids.length);
 
     //draw space
     ctx.fillStyle = "#000000";
