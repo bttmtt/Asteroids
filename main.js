@@ -1,6 +1,6 @@
 const FPS = 60;
 const LINES_WIDTH = 1;
-const GAME_LIVES = 1; // starting number of lives
+const GAME_LIVES = 2; // starting number of lives
 const FRICTION = 0.7;
 const ROIDS_NUM = 3; // starting number of asteroids
 const ROIDS_SIZE = 100; // starting size in px
@@ -16,20 +16,32 @@ const ROIDS_PTS_SML = 100; // point scored when destroing small asteroids
 const SAVE_KEY_SCORE = "bestscore"; // save key for local storage of best score
 const SHIP_SIZE = 20; // height in px
 const SHIP_THRUST = 3; // accelleration
-const SHIP_EXPLOSION_DUR = 1.7; // exploding animation in sec
+const SHIP_EXPL_DUR = 1.5; // exploding animation in sec
+const SHIP_EXPL_RADIUS = SHIP_SIZE * 1.2;
+const SHIP_EXPL_ANIM = "A2"; // choose animation "A1" or "A2" 
 const SHIP_INV_DUR = 3; // ship invulnerability when respawning in sec
 const SHIP_BLINK_DUR = 0.2; // duration of one blink in sec
-const SHIP_EXPLOSION_RADIUS = SHIP_SIZE * 1.2;
 const SHIP_TURN_SPEED = 1.3 * Math.PI; // rad per sec
-const SHOW_COLLISION_CIRCLES = false;
 const PROJ_MAX = 10; // maximum number of projectiles on screen at once
 const PROJ_SPEED = 500; // speed of projectiles 
 const PROJ_MAX_DIST = 0.6; // maximum distance a proj can travel as fraction of screen width
 const TEXT_FADE_TIME = 2.5; //text fade time is sec
 const TEXT_SIZE = 35; //text font height in px
+const SOUND_ON = false;
+const SHOW_COLLISION_CIRCLES = false;
 
+// get html elements
 var canv = document.getElementById("gameCanvas");
 var ctx = canv.getContext("2d");
+
+// set up sound effects
+var fxProj = new Sound("sounds/projectile.m4a", 10, 0.1);
+var fxExplShip = new Sound("sounds/explode.m4a");
+var fxHitLrg = new Sound("sounds/bangLarge.wav", 5);
+var fxHitMed = new Sound("sounds/bangMedium.wav", 5);
+var fxHitSml = new Sound("sounds/bangSmall.wav", 5);
+var fxExtraShip = new Sound("sounds/extraShip.wav");
+var fxThruster = new Sound("sounds/thrrrust.m4a", 1, 0.15);
 
 // set up the game parameters
 var level, lives, score, bestScore, ship, roids = [], explRoids = [], text, textAlpha;
@@ -43,7 +55,6 @@ function newGame() {
 
     // get the best score from local storage
     cookieStr = getCookie("bestscore");
-    console.log(cookieStr);
     bestScore = (cookieStr == "") ? 0 : parseInt(cookieStr);
 
     newLevel();
@@ -62,6 +73,7 @@ function gameOver() {
 }
 
 function newShip() {
+    fxExtraShip.play();
     return {
         x: canv.width / 2,
         y: canv.height / 2,
@@ -82,8 +94,8 @@ function newShip() {
     }
 }
 
-function drawShip(x, y, a) {
-    ctx.strokeStyle = "#ffffff";
+function drawShip(x, y, a, color = "#ffffff") {
+    ctx.strokeStyle = color;
     ctx.beginPath();
     ctx.moveTo(  // nose
         x + ship.r * Math.cos(a) * 1.5,
@@ -103,6 +115,12 @@ function drawShip(x, y, a) {
     );
     ctx.closePath();
     ctx.stroke();
+}
+
+function explodeShip() {
+    ship.explodeTime = SHIP_EXPL_DUR * FPS;
+    r1 = SHIP_EXPL_RADIUS / 3;
+    fxExplShip.play();
 }
 
 var x1, y1, r1, a1, vert1, offs1; // variables for drawing ship explosions
@@ -165,25 +183,28 @@ function destroyAsteroid(index) {
         roids.push(newAsteroid(x, y, Math.ceil(r / 2)));
         roids.push(newAsteroid(x, y, Math.ceil(r / 2)));
         score += ROIDS_PTS_LGE;
+        fxHitLrg.play();
     } else if (r == Math.ceil(ROIDS_SIZE / 4)) { // size medium
         roids.push(newAsteroid(x, y, Math.ceil(r / 2)));
         roids.push(newAsteroid(x, y, Math.ceil(r / 2)));
         score += ROIDS_PTS_MED;
+        fxHitMed.play();
     } else { //size small
         newExplRoid(x, y);
         score += ROIDS_PTS_SML;
+        fxHitSml.play();
     }
 
     // check Best score
     if (score > bestScore) {
         bestScore = score;
         setCookie("bestscore", bestScore, 9999);
-        console.log(document.cookie);
     }
 
     // destroy the original asteroid
     roids.splice(index, 1);
 
+    // next level when all the asteroids are gone 
     if (roids.length == 0) {
         level++;
         newLevel();
@@ -205,6 +226,31 @@ function shoot() {
             r: SHIP_SIZE / 15,
             dist: 0
         })
+        fxProj.play();
+    }
+
+    // only one shot at a time can be fired
+    ship.canShoot = false;
+}
+
+function Sound(src, maxStreams = 1, vol = 1.0) {
+    this.streams = [];
+    for (var i = 0; i < maxStreams; i++) {
+        this.streams.push(new Audio(src));
+        this.streams[i].volume = vol;
+    }
+
+    this.streamNum = 0;
+    this.play = function () {
+        if (SOUND_ON) {
+            this.streamNum = (this.streamNum + 1) % maxStreams;
+            this.streams[this.streamNum].play();
+        }
+    }
+
+    this.stop = function () {
+        this.streams[this.streamNum].pause();
+        this.streams[this.streamNum].currentTime = 0;
     }
 }
 
@@ -275,13 +321,12 @@ function update() {
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canv.width, canv.height);
 
+    //check collisions
     if (ship.blinkNum == 0 && !ship.dead) { // if the ship is not invulnerable
-        //check collisions
         for (var i = 0; i < roids.length; i++) {
             if (distBetweenPoints(ship.x, ship.y, roids[i].x, roids[i].y) <
                 ship.r + roids[i].r && ship.explodeTime == 0) {
-                ship.explodeTime = SHIP_EXPLOSION_DUR * FPS;
-                r1 = SHIP_EXPLOSION_RADIUS / 3;
+                explodeShip();
                 destroyAsteroid(i);
                 break;
             }
@@ -334,9 +379,11 @@ function update() {
 
         // thruster and friction 
         if (ship.thrusting) {
+            fxThruster.play();
             ship.v.x += SHIP_THRUST * Math.cos(ship.a) / FPS;
             ship.v.y -= SHIP_THRUST * Math.sin(ship.a) / FPS;
         } else {
+            fxThruster.stop();
             ship.v.x -= FRICTION * ship.v.x / FPS;
             ship.v.y -= FRICTION * ship.v.y / FPS;
         }
@@ -358,56 +405,39 @@ function update() {
         handleEdgeOfScreen(ship);
 
     } else { // if the ship is exploding
+        switch (SHIP_EXPL_ANIM) {
+            case "A1":
+                // draw ship exploding amimation A1
+                ctx.strokeStyle = "#ff0000";
+                boom = newAsteroid(ship.x, ship.y);
+                x1 = boom.x;
+                y1 = boom.y;
+                a1 = boom.a;
+                vert1 = boom.vert;
+                offs1 = boom.offs;
 
-        // draw ship exploding amimation A
-        /*        
-            ctx.strokeStyle = "#ff0000";
-            boom = newAsteroid(ship.x, ship.y);
-            x1 = boom.x;
-            y1 = boom.y;
-            a1 = boom.a;
-            vert1 = boom.vert;
-            offs1 = boom.offs;
-    
-            r1 += 2 / 3 * SHIP_EXPLOSION_RADIUS / (SHIP_EXPLOSION_DUR * FPS);
-    
-            ctx.beginPath();
-            ctx.moveTo(
-                x1 + r1 * offs1[0] * Math.cos(a1),
-                y1 + r1 * offs1[0] * Math.sin(a1)
-            );
-            for (var j = 1; j < vert1; j++) {
-                ctx.lineTo(
-                    x1 + r1 * offs1[j] * Math.cos(a1 + j * Math.PI * 2 / vert1),
-                    y1 + r1 * offs1[j] * Math.sin(a1 + j * Math.PI * 2 / vert1)
+                r1 += 2 / 3 * SHIP_EXPL_RADIUS / (SHIP_EXPL_DUR * FPS);
+
+                ctx.beginPath();
+                ctx.moveTo(
+                    x1 + r1 * offs1[0] * Math.cos(a1),
+                    y1 + r1 * offs1[0] * Math.sin(a1)
                 );
-            }
-            ctx.closePath();
-            ctx.stroke();
-        */
+                for (var j = 1; j < vert1; j++) {
+                    ctx.lineTo(
+                        x1 + r1 * offs1[j] * Math.cos(a1 + j * Math.PI * 2 / vert1),
+                        y1 + r1 * offs1[j] * Math.sin(a1 + j * Math.PI * 2 / vert1)
+                    );
+                }
+                ctx.closePath();
+                ctx.stroke();
+                break;
 
-        //draw ship exploding amimation B
-        ctx.strokeStyle = "#ff0000";
-        ctx.beginPath();
-        ctx.moveTo(  // nose
-            ship.x + ship.r * Math.cos(ship.a) * 1.5,
-            ship.y - ship.r * Math.sin(ship.a) * 1.5
-        );
-        ctx.lineTo( // rear left
-            ship.x - ship.r * (Math.cos(ship.a) + Math.sin(ship.a)),
-            ship.y + ship.r * (Math.sin(ship.a) - Math.cos(ship.a))
-        );
-        ctx.lineTo( // center
-            ship.x,
-            ship.y
-        );
-        ctx.lineTo( // rear right
-            ship.x - ship.r * (Math.cos(ship.a) - Math.sin(ship.a)),
-            ship.y + ship.r * (Math.sin(ship.a) + Math.cos(ship.a))
-        );
-        ctx.closePath();
-        ctx.stroke();
-
+            case "A2":
+                //draw ship exploding amimation A2
+                drawShip(ship.x, ship.y, ship.a, "#ff0000");
+                break;
+        }
         // timer and lives handler
         ship.explodeTime--;
         if (ship.explodeTime == 0) {
@@ -418,6 +448,7 @@ function update() {
                 ship = newShip();
             }
         }
+
     }
 
     // projectiles
