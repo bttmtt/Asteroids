@@ -1,0 +1,19 @@
+body {
+    background-color: purple;
+}
+
+.container {
+    text-align: center;
+    margin-top: 1%;
+}
+
+@font-face {
+    font-family: AtariClassic;
+    src: url(fonts/AtariClassic-gry3.ttf);
+}
+
+#title {
+    font-family: AtariClassic;
+    font-size: 30pt;
+    color: yellow;
+}

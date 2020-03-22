@@ -1,19 +1,30 @@
 <!DOCTYPE html>
-
-<html lang="en">
+<html>
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asteroids</title>
     <link href="https://fonts.googleapis.com/css?family=Lato:100&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div style="text-align: center;">
+    <div class="container">
+        <span id="title">ASTEROID</span>
+    </div>
+    <div class="container">
         <canvas id="gameCanvas" width="1200" height="700"></canvas>
     </div>
+    <script src="controls.js"></script>
     <script src="cookieLibrary.js"></script>
+    <script src="costants.js"></script>
+    <script src="hud.js"></script>
+    <script src="roids.js"></script>
+    <script src="ship.js"></script>
+    <script src="sound.js"></script>
+    <script src="update.js"></script>
+    <script src="usefulOthers.js"></script>
     <script src="main.js"></script>
 </body>
 
