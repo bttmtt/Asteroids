@@ -1,10 +1,10 @@
 const FPS = 60;
 const LINES_WIDTH = 1;
-const GAME_LIVES = 2; // starting number of lives
+const GAME_LIVES = 3; // starting number of lives
 const FRICTION = 0.7;
 const ROIDS_NUM = 4; // starting number of asteroids
 const ROIDS_SIZE = 100; // starting size in px
-const ROIDS_SPD = 55; // max starting speed 
+const ROIDS_SPD = 65; // max starting speed 
 const ROIDS_VERT = 10; // average number of vertices 
 const ROIDS_JAG = 0.35; // jaggedness (0 = none, 1 = lots)
 const ROIDS_EXPL_PIECES = 25; // number of pieces when the roids breaks
@@ -13,7 +13,7 @@ const ROIDS_EXPL_RADIUS = ROIDS_SIZE / 4 * 0.5;
 const ROIDS_PTS_LGE = 20; // point scored when destroing large asteroids
 const ROIDS_PTS_MED = 50; // point scored when destroing medium asteroids
 const ROIDS_PTS_SML = 100; // point scored when destroing small asteroids
-const SAVE_KEY_SCORE = "bestscore"; // save key for local storage of best score
+const SAVE_KEY_SCORE = "bestscore"; // save key for cookie of best score
 const SHIP_SIZE = 20; // height in px
 const SHIP_THRUST = 3.5; // accelleration
 const SHIP_EXPL_DUR = 1.5; // exploding animation in sec
@@ -23,12 +23,12 @@ const SHIP_INV_DUR = 3; // ship invulnerability when respawning in sec
 const SHIP_BLINK_DUR = 0.2; // duration of one blink in sec
 const SHIP_TURN_SPEED = 1.3 * Math.PI; // rad per sec
 const PROJ_MAX = 10; // maximum number of projectiles on screen at once
-const PROJ_SPEED = 500; // speed of projectiles 
+const PROJ_SPEED = 550; // speed of projectiles 
 const PROJ_MAX_DIST = 0.6; // maximum distance a proj can travel as fraction of screen width
 const TEXT_FADE_TIME = 2.5; //text fade time is sec
 const TEXT_SIZE = 35; //text font height in px
-const SOUND_ON = true;
-const MUSIC_ON = true;
+const SOUND_ON = false;
+const MUSIC_ON = false;
 const SHOW_COLLISION_CIRCLES = false;
 
 // get html elements
@@ -238,6 +238,20 @@ function shoot() {
     ship.canShoot = false;
 }
 
+function handleEdgeOfScreen(obj) {
+    if (obj.x < 0 - obj.r) {
+        obj.x = canv.width + obj.r;
+    } else if (obj.x > canv.width + obj.r) {
+        obj.x = 0 - obj.r;
+    }
+
+    if (obj.y < 0 - obj.r) {
+        obj.y = canv.height + obj.r;
+    } else if (obj.y > canv.height + obj.r) {
+        obj.y = 0 - obj.r;
+    }
+}
+
 function Sound(src, maxStreams = 1, vol = 1.0) {
     this.streams = [];
     for (var i = 0; i < maxStreams; i++) {
@@ -328,20 +342,6 @@ function keyUp(evt) {
         case 39: // rigth arrow (stop ship rotating rigth)
             ship.rot = 0;
             break;
-    }
-}
-
-function handleEdgeOfScreen(obj) {
-    if (obj.x < 0 - obj.r) {
-        obj.x = canv.width + obj.r;
-    } else if (obj.x > canv.width + obj.r) {
-        obj.x = 0 - obj.r;
-    }
-
-    if (obj.y < 0 - obj.r) {
-        obj.y = canv.height + obj.r;
-    } else if (obj.y > canv.height + obj.r) {
-        obj.y = 0 - obj.r;
     }
 }
 
@@ -616,7 +616,7 @@ function update() {
         }
     }*/
 
-    ctx.lineWidth = 1;
+    ctx.lineWidth = LINES_WIDTH;
     // draw the game text
     if (textAlpha >= 0) {
         ctx.textAlign = "center";
