@@ -1,8 +1,12 @@
 // get html elements
 var canv = document.getElementById("gameCanvas");
+canv.width = window.innerWidth * 0.7;
+canv.height = window.innerHeight * 0.8;
+
 var ctx = canv.getContext("2d");
 
 // set up sound effects
+var soundOn = true;
 var fxProj = new Sound("sounds/projectile.m4a", 10, 0.05);
 var fxExplShip = new Sound("sounds/explode.m4a");
 var fxHitLrg = new Sound("sounds/bangLarge.wav", 5, 0.6);
@@ -12,6 +16,7 @@ var fxExtraShip = new Sound("sounds/extraShip.wav");
 var fxThruster = new Sound("sounds/thrrrust.m4a", 1, 0.15);
 
 // set up music
+var musicOn = true;
 var music = new Music("sounds/music-low.m4a", "sounds/music-high.m4a");
 
 // set up the game parameters

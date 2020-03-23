@@ -2,9 +2,43 @@ body {
     background-color: purple;
 }
 
+#leftThing {
+    float: left;
+    width: 13%;
+    height: 800px;
+}
+
+#rightThing {
+    float: right;
+    width: 13%;
+    height: 800px;
+}
+
 .container {
+    border: 1px solid black;
     text-align: center;
-    margin-top: 1%;
+    margin-left: none;
+    margin-right: none;
+}
+
+.marginTop {
+    margin-top: 1.5%;
+}
+
+.soundIcon {
+    width: 80px;
+    height: 80px;
+    float: right;
+    margin-right: 7%;
+    cursor: pointer;
+}
+
+.soundIcon:hover {
+    opacity: 0.8;
+}
+
+#soundOff {
+    display: none;
 }
 
 @font-face {

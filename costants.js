@@ -27,6 +27,4 @@ const PROJ_SPEED = 550; // speed of projectiles
 const PROJ_MAX_DIST = 0.6; // maximum distance a proj can travel as fraction of screen width
 const TEXT_FADE_TIME = 2.5; //text fade time is sec
 const TEXT_SIZE = 35; //text font height in px
-const SOUND_ON = false;
-const MUSIC_ON = false;
 const SHOW_COLLISION_CIRCLES = false;

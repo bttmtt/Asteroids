@@ -10,19 +10,27 @@
 </head>
 
 <body>
-    <div class="container">
-        <span id="title">ASTEROID</span>
+    <div id="leftThing" class="container">
+
     </div>
-    <div class="container">
-        <canvas id="gameCanvas" width="1200" height="700"></canvas>
+
+    <div id="rightThing" class="container">
+        <div id="soundOn" onclick="switchAudioOnOff()"> <img src="icons/soundOn.png" alt="SOUND ON" class="soundIcon"> </div>
+        <div id="soundOff" onclick="switchAudioOnOff()"> <img src="icons/soundOff.png" alt="SOUND OFF" class="soundIcon"> </div>
     </div>
+
+    <div id="centralThing" class="container">
+        <div id="title" class="marginTop">ASTEROID</div>
+        <canvas id="gameCanvas" width="1150"; height="670"; class="marginTop"></canvas>
+    </div>
+
     <script src="controls.js"></script>
     <script src="cookieLibrary.js"></script>
     <script src="costants.js"></script>
     <script src="hud.js"></script>
     <script src="roids.js"></script>
     <script src="ship.js"></script>
-    <script src="sound.js"></script>
+    <script src="audio.js"></script>
     <script src="update.js"></script>
     <script src="usefulOthers.js"></script>
     <script src="main.js"></script>

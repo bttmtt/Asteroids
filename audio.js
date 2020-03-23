@@ -1,4 +1,4 @@
-function Sound(src, maxStreams = 1, vol = 1.0) {
+function Sound(src, maxStreams = 1, vol = 1.0, music = false) {
     this.streams = [];
     for (var i = 0; i < maxStreams; i++) {
         this.streams.push(new Audio(src));
@@ -7,7 +7,7 @@ function Sound(src, maxStreams = 1, vol = 1.0) {
 
     this.streamNum = 0;
     this.play = function () {
-        if (SOUND_ON) {
+        if (soundOn || music) {
             this.streamNum = (this.streamNum + 1) % maxStreams;
             this.streams[this.streamNum].play();
         }
@@ -20,14 +20,14 @@ function Sound(src, maxStreams = 1, vol = 1.0) {
 }
 
 function Music(srcLow, srcHigh) {
-    this.soundLow = new Sound(srcLow, 1, 0.5);
-    this.soundHigh = new Sound(srcHigh, 1, 0.5);
+    this.soundLow = new Sound(srcLow, 1, 0.5, true);
+    this.soundHigh = new Sound(srcHigh, 1, 0.5, true);
     this.low = true;
     this.tempo = 1; // seconds per beat
     this.beatTime = 0; // frames left until the next beat
 
     this.play = function () {
-        if (MUSIC_ON) {
+        if (musicOn) {
             if (this.low) {
                 this.soundLow.play();
             } else {
@@ -48,5 +48,18 @@ function Music(srcLow, srcHigh) {
 
     this.setTempo = function (n) {
         this.tempo = (n < 20) ? (1.0 - n / 80 * 3) : (0.25);
+    }
+}
+
+function switchAudioOnOff() {
+    soundOn = !soundOn;
+    musicOn = !musicOn;
+
+    if (soundOn) {
+        document.getElementById("soundOn").style.display = "block";
+        document.getElementById("soundOff").style.display = "none";
+    } else {
+        document.getElementById("soundOn").style.display = "none";
+        document.getElementById("soundOff").style.display = "block";
     }
 }
