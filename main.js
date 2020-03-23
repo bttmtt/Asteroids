@@ -20,9 +20,8 @@ var musicOn = true;
 var music = new Music("sounds/music-low.m4a", "sounds/music-high.m4a");
 
 // set up the game parameters
-var level, lives, score, bestScore, ship, roids = [], explRoids = [], text, textAlpha, textNewBestAlpha;
+var status, level, lives, score, bestScore, ship, roids = [], explRoids = [], text, textAlpha, textNewBestAlpha;
 newGame();
-
 // variables for drawing ship explosions
 var x1, y1, r1, a1, vert1, offs1;
 
@@ -31,12 +30,18 @@ document.addEventListener("keydown", keyDown);
 document.addEventListener("keyup", keyUp);
 
 // game loop
-setInterval(update, 1000 / FPS);
+setInterval(checkStatus, 1000 / FPS);
 
-
-
+function checkStatus() {
+    if (status == "PLAY") {
+        update();
+    } else if (status == "PAUSE") {
+        drawPause();
+    }
+}
 
 function newGame() {
+    status = "PLAY";
     level = 0;
     score = 0;
     lives = GAME_LIVES;
@@ -63,8 +68,22 @@ function gameOver() {
         bestScore = score;
         setCookie(SAVE_KEY_SCORE, bestScore, 9999);
     }
-    
+
     ship.dead = true;
     text = "GAME OVER";
     textAlpha = 1.0;
+}
+
+function drawPause() {
+    ctx.lineWidth = LINES_WIDTH;
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffffff";
+    
+    ctx.font = "small-caps " + TEXT_SIZE + "px atariClassic";
+    text = "GAME PAUSED";
+    ctx.fillText(text, canv.width / 2, canv.height * 0.25);
+    
+    text = "Press esc again to resume";
+    ctx.font = "small-caps " + (TEXT_SIZE * 0.8) + "px atariClassic";
+    ctx.fillText(text, canv.width / 2, canv.height * 0.40);
 }
