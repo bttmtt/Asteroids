@@ -2,6 +2,7 @@
 var canv = document.getElementById("gameCanvas");
 canv.width = window.innerWidth * 0.7;
 canv.height = window.innerHeight * 0.8;
+document.getElementById("divCanvas").style.display = "none";
 
 var ctx = canv.getContext("2d");
 
@@ -21,7 +22,7 @@ var music = new Music("sounds/music-low.m4a", "sounds/music-high.m4a");
 
 // set up the game parameters
 var status, level, lives, score, bestScore, ship, roids = [], explRoids = [], text, textAlpha, textNewBestAlpha;
-newGame();
+
 // variables for drawing ship explosions
 var x1, y1, r1, a1, vert1, offs1;
 
@@ -41,6 +42,8 @@ function checkStatus() {
 }
 
 function newGame() {
+    document.getElementById("divCanvas").style.display = "block";
+    document.getElementById("gameMenu").style.display = "none";
     status = "PLAY";
     level = 0;
     score = 0;
@@ -78,11 +81,11 @@ function drawPause() {
     ctx.lineWidth = LINES_WIDTH;
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffffff";
-    
+
     ctx.font = "small-caps " + TEXT_SIZE + "px atariClassic";
     text = "GAME PAUSED";
     ctx.fillText(text, canv.width / 2, canv.height * 0.25);
-    
+
     text = "Press esc again to resume";
     ctx.font = "small-caps " + (TEXT_SIZE * 0.8) + "px atariClassic";
     ctx.fillText(text, canv.width / 2, canv.height * 0.40);

@@ -15,14 +15,36 @@
     </div>
 
     <div id="rightThing" class="container">
-        <div id="soundOn" onclick="switchAudioOnOff()"> <img src="icons/soundOn.png" alt="SOUND ON" class="soundIcon"> </div>
-        <div id="soundOff" onclick="switchAudioOnOff()"> <img src="icons/soundOff.png" alt="SOUND OFF" class="soundIcon"> </div>
+        <div id="soundOn" onclick="switchAudioOnOff()">
+            <img src="icons/soundOn.png" alt="SOUND ON" class="icon" id="soundOnIcon">
+        </div>
+        <div id="soundOff" onclick="switchAudioOnOff()">
+            <img src="icons/soundOff.png" alt="SOUND OFF" class="icon" id="soundOffIcon">
+        </div>
+
+        <div onclick="newGame()">
+            <img src="icons/restart.png" alt="RESTART GAME" class="icon" id="restartIcon">
+        </div>
     </div>
 
     <div id="centralThing" class="container">
         <div id="title" class="marginTop">ASTEROID</div>
-        <canvas id="gameCanvas" width="1150"; height="670"; class="marginTop"></canvas>
+
+        <div id="gameMenu">
+            CIAO BOMBER BUTTA IL TUO NOME
+            <form action="" method="get">
+                <input type="text" name="playerUsername">
+                <div>
+                    <input type="button" value="PLAY" onclick="newGame()">
+                </div>
+            </form>
+        </div>
+
+        <div id="divCanvas" class="marginTop">
+            <canvas id="gameCanvas" width="1150" height="670"></canvas>
+        </div>
     </div>
+
 
     <script src="controls.js"></script>
     <script src="cookieLibrary.js"></script>

@@ -4,38 +4,60 @@
 }
 
 body {
-    background-color: purple;
-}
-
-#leftThing {
-    float: left;
-    width: 13%;
-    height: 800px;
-}
-
-#rightThing {
-    float: right;
-    width: 13%;
-    height: 800px;
-}
-
-.container {
-    border: 1px solid black;
-    text-align: center;
-    margin-left: none;
-    margin-right: none;
+    background-color: rgb(131, 0, 0);
 }
 
 .marginTop {
     margin-top: 1.5%;
 }
 
-.soundIcon {
+#leftThing {
+    float: left;
+    width: 14.6%;
+    height: 800px;
+}
+
+#centralThing {
+    float: left;
+    width: 70%;
+    height: 800px;
+}
+
+#rightThing {
+    float: right;
+    width: 14.6%;
+    height: 800px;
+}
+
+.container {
+    text-align: center;
+    margin-left: none;
+    margin-right: none;
+}
+
+.icon {
+    float: right;
+    cursor: pointer;
+}
+
+#restartIcon {
+    margin-top: 10px;
+    margin-left: 50px;
+    width: 61px;
+    height: 59px;
+    float: left;
+}
+
+#soundOnIcon {
+    margin-right: 30px;
     width: 80px;
     height: 80px;
-    float: right;
-    margin-right: 7%;
-    cursor: pointer;
+}
+
+#soundOffIcon {
+    margin-right: 32px;
+    width: 80px;
+    height: 80px;
 }
 
 .soundIcon:hover {
@@ -50,4 +72,50 @@ body {
     font-family: AtariClassic;
     font-size: 30pt;
     color: yellow;
+}
+
+#gameMenu {
+    padding-top: 20px;
+    margin: auto;
+    width: 80%;
+    height: 500px;
+    background-color: rgb(63, 0, 0);
+    margin-top: 75px;
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    font-size: 22pt;
+    border: 2px solid grey;
+    border-radius: 4px;
+    color: white;
+} 
+
+input[type=text] {
+    margin-top: 25px;
+    font-weight: 600;
+    font-size: 22pt;
+    font-family: 'Lato', sans-serif;
+    color: white;
+    background-color: inherit;
+    width: 60%;
+    height: 40px;
+    padding-top: 10pt;
+    padding-bottom: 10pt;
+    text-align: center;
+    border: none;
+    border-bottom: 2px solid grey;
+    outline: none;
+    border-radius: 2px;
+}
+input[type=button] {
+    width: 30%;
+    height: 50px;
+    margin-top: 150px;
+    background-color: inherit;
+    border: 2px solid grey;
+    border-radius: 4px;
+    font-size: 22pt;
+    color: white;
+}
+input[type=button]:hover {
+    background-color: rgb(53, 26, 26);
 }
