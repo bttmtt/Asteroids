@@ -1,3 +1,8 @@
+@font-face {
+    font-family: AtariClassic;
+    src: url(fonts/AtariClassic-gry3.ttf);
+}
+
 body {
     background-color: purple;
 }
@@ -39,11 +44,6 @@ body {
 
 #soundOff {
     display: none;
-}
-
-@font-face {
-    font-family: AtariClassic;
-    src: url(fonts/AtariClassic-gry3.ttf);
 }
 
 #title {
