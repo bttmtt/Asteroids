@@ -56,10 +56,10 @@ function switchAudioOnOff() {
     musicOn = !musicOn;
 
     if (soundOn) {
-        document.getElementById("soundOn").style.display = "block";
-        document.getElementById("soundOff").style.display = "none";
+        document.getElementById("soundOnIcon").style.display = "block";
+        document.getElementById("soundOffIcon").style.display = "none";
     } else {
-        document.getElementById("soundOn").style.display = "none";
-        document.getElementById("soundOff").style.display = "block";
+        document.getElementById("soundOnIcon").style.display = "none";
+        document.getElementById("soundOffIcon").style.display = "block";
     }
 }

@@ -1,0 +1,23 @@
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: inherit;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+td {
+    color:white;
+    padding-top: 11px;
+    padding-bottom: 9px;
+    font-family: 'Lato', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    border-bottom: 1px solid gray;
+}
+
+#tableTitle {
+    font-weight: 900;
+    font-size: 23px;
+    padding-bottom: 15px;
+}

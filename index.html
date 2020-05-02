@@ -1,50 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html id="page">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv=“Pragma” content=”no-cache”>
+    <meta http-equiv=“Expires” content=”-1″>
+    <meta http-equiv=“CACHE-CONTROL” content=”NO-CACHE”>
     <title>Asteroids</title>
     <link href="https://fonts.googleapis.com/css?family=Lato:100&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="icons/favicon.ico">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
 </head>
 
-<body>
-    <div id="leftThing" class="container">
+<body id="bod">
 
+    <div id="leftThing" class="container">
+        <div id="space">
+            <div onclick="menu()">
+                <img src="icons/home.png" alt="HOME" class="icon" id="homeIcon">
+            </div>
+            <div onclick="switchAudioOnOff()">
+                <img src="icons/soundOn.png" alt="SOUND ON" class="icon" id="soundOnIcon">
+            </div>
+            <div onclick="switchAudioOnOff()">
+                <img src="icons/soundOff.png" alt="SOUND OFF" class="icon" id="soundOffIcon">
+            </div>
+            <div onclick="newGame()">
+                <img src="icons/restart.png" alt="RESTART GAME" class="icon" id="restartIcon">
+            </div>
+        </div>
+
+        <div id="sb"></div>
     </div>
 
     <div id="rightThing" class="container">
-        <div id="soundOn" onclick="switchAudioOnOff()">
-            <img src="icons/soundOn.png" alt="SOUND ON" class="icon" id="soundOnIcon">
-        </div>
-        <div id="soundOff" onclick="switchAudioOnOff()">
-            <img src="icons/soundOff.png" alt="SOUND OFF" class="icon" id="soundOffIcon">
-        </div>
-
-        <div onclick="newGame()">
-            <img src="icons/restart.png" alt="RESTART GAME" class="icon" id="restartIcon">
-        </div>
+        chi va piano va sano e lontano
     </div>
 
     <div id="centralThing" class="container">
-        <div id="title" class="marginTop">ASTEROID</div>
+        <div id="title">ASTEROID</div>
 
-        <div id="gameMenu">
-            CIAO BOMBER BUTTA IL TUO NOME
-            <form action="" method="get">
-                <input type="text" name="playerUsername">
-                <div>
-                    <input type="button" value="PLAY" onclick="newGame()">
+        <div id="sectionLines">
+
+            <div id="gameMenu" class="centralWindow">
+                CIAO BOMBER BUTTA IL TUO NOME
+                <form id="frm1" action="">
+                    <input type="text" name="playerUsername" spellcheck="false" maxlength="13" id="inpText">
+                    <div>
+                        <div>
+                            <input type="button" value="PLAY" onclick="newGame()" class="inpButt" id="playButton">
+                        </div>
+                        <div>
+                            <input type="button" value="TUTORIAL" onclick="showTutorial()" class="inpButt"
+                                id="tutorialButton">
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="gameTutorial" class="centralWindow">
+                <div id="text">
+                    <p> tasti freccia: .............. muovere la navicella </p>
+                    <p> barra spaziatrice: ... sparare </p>
+                    <p> numpad 0: .................. teletrasporto </p>
+                    <p> esc: ................................. pausa </p>
                 </div>
-            </form>
-        </div>
 
-        <div id="divCanvas" class="marginTop">
-            <canvas id="gameCanvas" width="1150" height="670"></canvas>
+                <div>
+                    <input type="button" value="INDIETRO" onclick="hideTutorial()" class="inpButt">
+                </div>
+
+            </div>
+
+            <div id="divCanvas">
+                <canvas id="gameCanvas"></canvas>
+            </div>
+
         </div>
     </div>
-
 
     <script src="controls.js"></script>
     <script src="cookieLibrary.js"></script>
@@ -53,9 +89,11 @@
     <script src="roids.js"></script>
     <script src="ship.js"></script>
     <script src="audio.js"></script>
-    <script src="update.js"></script>
     <script src="usefulOthers.js"></script>
+    <script src="update.js"></script>
     <script src="main.js"></script>
+
+    <link rel="stylesheet" href="styleLeaderBoard.css">
 </body>
 
 </html>

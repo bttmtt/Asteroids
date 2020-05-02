@@ -13,7 +13,6 @@ const ROIDS_EXPL_RADIUS = ROIDS_SIZE / 4 * 0.5;
 const ROIDS_PTS_LGE = 20; // point scored when destroing large asteroids
 const ROIDS_PTS_MED = 50; // point scored when destroing medium asteroids
 const ROIDS_PTS_SML = 100; // point scored when destroing small asteroids
-const SAVE_KEY_SCORE = "bestscore"; // save key for cookie of best score
 const SHIP_SIZE = 20; // height in px
 const SHIP_THRUST = 3.5; // accelleration
 const SHIP_EXPL_DUR = 1.5; // exploding animation in sec

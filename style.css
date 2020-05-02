@@ -3,8 +3,13 @@
     src: url(fonts/AtariClassic-gry3.ttf);
 }
 
-body {
-    background-color: rgb(131, 0, 0);
+html, body {
+    background-color: rgb(134, 28, 28);
+    height:99%
+}
+
+* {
+    box-sizing: border-box;
 }
 
 .marginTop {
@@ -13,50 +18,95 @@ body {
 
 #leftThing {
     float: left;
-    width: 14.6%;
-    height: 800px;
+    width: 16.5%;
+    height: 90%;
+    margin-right: 0.2%;
+    min-width: 180px;
 }
 
 #centralThing {
     float: left;
-    width: 70%;
-    height: 800px;
+    width: 66.5%;
+    height: 90%;
+}
+
+@media only screen and (max-width: 1075px) {
+    #centralThing {
+        width: 70%;
+    }
+    #rightThing {
+        display: none;
+    }
 }
 
 #rightThing {
     float: right;
-    width: 14.6%;
-    height: 800px;
+    width: 16%;
+    height: 90%;
+    padding-top: 20%;
+    font-family: 'Lato', sans-serif;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    padding-right: 2%;
+}
+
+#sectionLines {
+    margin-left: 2%;
+    margin-right: 2%;
+    padding: 1.2%;
+    border-left: 1px solid gray;
+    border-right: 1px solid gray;
+    height: 91%;
+    margin-bottom: none;
+    border-radius: 1px;
 }
 
 .container {
     text-align: center;
-    margin-left: none;
-    margin-right: none;
 }
 
 .icon {
-    float: right;
+    float: left;
     cursor: pointer;
+    display: none;
+    margin-left: 0.5%;
+}
+
+#space {
+    margin-top: none;
+    padding-top: none;
+    height: 83px;
+    width: 100%;
+}
+
+#homeIcon {
+    width: 74px;
+    height: 77px;
 }
 
 #restartIcon {
-    margin-top: 10px;
-    margin-left: 50px;
-    width: 61px;
-    height: 59px;
-    float: left;
+    margin-left: 0.8%;
+    width: 57px;
+    height: 56px;
+    margin-top: 12px;
+    margin-right: none;
+}
+
+@media only screen and (max-width: 1320px) {
+    #restartIcon {
+        width: 0.1px;
+        height: 0.1px;
+    }
 }
 
 #soundOnIcon {
-    margin-right: 30px;
-    width: 80px;
+    width: 78px;
     height: 80px;
 }
 
 #soundOffIcon {
-    margin-right: 32px;
-    width: 80px;
+    width: 78px;
     height: 80px;
 }
 
@@ -64,39 +114,65 @@ body {
     opacity: 0.8;
 }
 
-#soundOff {
-    display: none;
-}
 
 #title {
     font-family: AtariClassic;
-    font-size: 30pt;
-    color: yellow;
+    font-size: 45pt;
+    color: black;
+    margin-top: 1.5%;
 }
 
-#gameMenu {
-    padding-top: 20px;
-    margin: auto;
-    width: 80%;
-    height: 500px;
+#divCanvas {
+    margin-top: 4%;
+}
+
+.centralWindow {
+    padding: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 93%;
+    height: 65%;
+    min-height: 450px;
     background-color: rgb(63, 0, 0);
-    margin-top: 75px;
+    margin-top: 4%;
     font-family: 'Lato', sans-serif;
     font-weight: 700;
     font-size: 22pt;
-    border: 2px solid grey;
-    border-radius: 4px;
+    border: 1px solid grey;
+    border-radius: 15px;
     color: white;
 } 
 
-input[type=text] {
-    margin-top: 25px;
+#gameTutorial {
+    display: none;
+    text-align: center;
+}
+
+#gameMenu {
+    padding-top: 5%;
+}
+
+#text {
+    text-align: left;
+    padding-left: 20%;
+    margin-bottom: 5%;
+}
+
+@media only screen and (max-width: 1250px) {
+    #text {
+        padding-left: 10%;
+    }
+}
+
+#inpText {
+    margin-top: 4%;
+    margin-bottom: 10%;
     font-weight: 600;
     font-size: 22pt;
     font-family: 'Lato', sans-serif;
-    color: white;
+    color: rgba(255, 255, 255, 0.5);
     background-color: inherit;
-    width: 60%;
+    width: 55%;
     height: 40px;
     padding-top: 10pt;
     padding-bottom: 10pt;
@@ -106,16 +182,26 @@ input[type=text] {
     outline: none;
     border-radius: 2px;
 }
-input[type=button] {
+
+#inpText:focus {
+    color: white;
+}
+
+.inpButt {
     width: 30%;
     height: 50px;
-    margin-top: 150px;
     background-color: inherit;
     border: 2px solid grey;
     border-radius: 4px;
     font-size: 22pt;
     color: white;
+    margin-bottom: 1.5%;
 }
-input[type=button]:hover {
+
+.inpButt:hover {
     background-color: rgb(53, 26, 26);
+}
+
+#playButton {
+    font-weight: 600;
 }

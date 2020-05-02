@@ -13,7 +13,7 @@ function update() {
     ctx.fillRect(0, 0, canv.width, canv.height);
 
     //check collisions
-    if (ship.blinkNum == 0 && !ship.dead) { // if the ship is not invulnerable
+    if (ship.blinkNum == 0 && !ship.dead) { // if the ship is not invulnerable and not dead
         for (var i = 0; i < roids.length; i++) {
             if (distBetweenPoints(ship.x, ship.y, roids[i].x, roids[i].y) <
                 ship.r + roids[i].r && ship.explodeTime == 0) {
@@ -266,14 +266,20 @@ function update() {
 
     ctx.lineWidth = LINES_WIDTH;
     // draw the game text
+    if(welcomeAlpha >= 0) {
+        ctx.textAlign = "center";
+        ctx.fillStyle = "rgba(255, 255, 0, " + welcomeAlpha + ")";
+        ctx.font = "small-caps " + (TEXT_SIZE) + "px 'Lato', sans-serif";
+        ctx.fillText(textWelcome, canv.width / 2, canv.height * 0.1);
+        welcomeAlpha -= (1.0 / TEXT_FADE_TIME / FPS);
+    }
+
     if (textAlpha >= 0) {
         ctx.textAlign = "center";
         ctx.fillStyle = "rgba(255, 255, 255, " + textAlpha + ")";
         ctx.font = "small-caps " + TEXT_SIZE + "px atariClassic";
-        ctx.fillText(text, canv.width / 2, canv.height * 0.25);
+        ctx.fillText(text, canv.width / 2, canv.height * 0.3);
         textAlpha -= (1.0 / TEXT_FADE_TIME / FPS);
-    } else if (ship.dead) {
-        newGame();
     }
 
     drawHud();
