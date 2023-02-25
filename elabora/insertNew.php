@@ -1,9 +1,9 @@
 <?php
 
-$servername = "sql104.epizy.com";
-$username = "epiz_25370186";
-$password = "W0Pq3BflOByqZr";
-$dbname = "epiz_25370186_db1";
+$servername = "sql105.epizy.com";
+$username = "epiz_33673290";
+$password = "Y8v7oKOV1T";
+$dbname = "epiz_33673290_database1";
 
 /*
 $servername = "localhost";
